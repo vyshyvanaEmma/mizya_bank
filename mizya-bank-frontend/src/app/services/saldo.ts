@@ -1,0 +1,20 @@
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class SaldoService {
+  private apiUrl = '';
+
+  constructor(private http: HttpClient) {}
+
+  getBalance(idAccount: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/accounts/${idAccount}/balance`);
+  }
+
+  getTransactions(idAccount: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/accounts/${idAccount}/transactions`);
+  }
+}
