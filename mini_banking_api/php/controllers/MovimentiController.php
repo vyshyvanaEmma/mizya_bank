@@ -23,11 +23,9 @@ class MovimentiController
     $stmt->execute();
     $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-    if($results->num_rows === 0){
-
-      $response->getBody()->write(json_encode("ERRORE: nessun movimento trovato per questo account"));
-      return $response->withHeader("Content-type", "application/json")->withStatus(404);
-
+    if (count($results) === 0) {
+        $response->getBody()->write(json_encode("ERRORE: nessun movimento trovato per questo account"));
+        return $response->withHeader("Content-type", "application/json")->withStatus(404);
     }
 
     $response->getBody()->write(json_encode($results));
