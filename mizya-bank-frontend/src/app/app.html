@@ -39,6 +39,13 @@
   </div>
 </nav>
 
+<!-- mobile nav -->
+<div [class.translate-x-0]="isMenuOpen" [class.translate-x-full]="!isMenuOpen"
+  class="fixed top-0 right-0 h-full w-64 bg-zinc-900 border-l border-orange-500 z-40 transform transition-transform duration-300 ease-in-out lg:hidden pt-28 p-4 flex flex-col gap-2 overflow-y-auto">
+  <ng-container *ngTemplateOutlet="navLinks"></ng-container>
+</div>
+
+
 <!-- overlay -->
 <div *ngIf="isMenuOpen" (click)="toggleMenu()" class="fixed inset-0 bg-black/60 z-30 lg:hidden"></div>
 
