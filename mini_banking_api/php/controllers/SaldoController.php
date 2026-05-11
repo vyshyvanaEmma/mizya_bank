@@ -5,7 +5,8 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 class SaldoController
 {
     private function get_data() {
-        return @new MySQLi('my_mariadb', 'root', 'hotpeppers', 'bank');
+        return @new MySQLi('localhost', 'root', '', 'banca');
+        //return @new MySQLi('my_mariadb', 'root', 'hotpeppers', 'bank');
     }
 
     // GET /accounts/{idAccount}/balance
