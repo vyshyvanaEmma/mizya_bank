@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class SaldoService {
-  private apiUrl = '';
+  private apiUrl = 'http://localhost:4200';
 
   constructor(private http: HttpClient) {}
 
