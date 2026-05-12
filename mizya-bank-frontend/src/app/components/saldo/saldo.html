@@ -25,25 +25,33 @@
         </div>
     </div>
 
-    <!-- 2. WALLET SECTION -->
+    <!-- section wallet -->
     <div class="w-full max-w-lg grid grid-cols-2 gap-4">
+        
+        <!-- fiat -->
         <div
             class="p-5 bg-zinc-800/80 rounded-2xl border border-zinc-700 hover:border-orange-500 transition-all cursor-pointer group">
             <div class="flex justify-between items-start mb-2">
-                <p class="text-zinc-400 text-xs group-hover:text-orange-300 transition-colors uppercase">Fiat Wallet</p>
+                <p class="text-zinc-400 text-xs group-hover:text-orange-300 transition-colors uppercase">Fiat Wallet (USD)</p>
                 <div class="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316]"></div>
             </div>
-            <p class="font-bold text-xl text-white">€ 8.200,00</p>
+            <p class="font-bold text-xl text-white">{{ saldoFiatUsd | currency:'USD':'symbol':'1.2-2' }}</p>
+            <p class="text-zinc-500 text-xs mt-1">Rate: 1 EUR = {{ taxChangeUsd }} USD</p>
         </div>
+
+        <!-- crypto -->
         <div
             class="p-5 bg-zinc-800/80 rounded-2xl border border-zinc-700 hover:border-orange-500 transition-all cursor-pointer group">
             <div class="flex justify-between items-start mb-2">
-                <p class="text-zinc-400 text-xs group-hover:text-orange-300 transition-colors uppercase">Crypto</p>
+                <p class="text-zinc-400 text-xs group-hover:text-orange-300 transition-colors uppercase">Crypto (BTC)</p>
                 <div class="w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#fff]"></div>
             </div>
-            <p class="font-bold text-xl text-white">0.1245 BTC</p>
+            <p class="font-bold text-xl text-white">{{ quantityBitcoin }} BTC</p>
+            <p class="text-zinc-500 text-xs mt-1">Price: {{ price1Bit | currency:'EUR':'symbol':'1.2-2' }}</p>
         </div>
+
     </div>
+
 
     <!-- 2 last transactions -->
     <div class="w-full max-w-lg bg-zinc-900/80 border border-zinc-800 rounded-3xl overflow-hidden relative group">
