@@ -18,7 +18,7 @@ class MovimentiController
     $this->mysqli->getConnection();
 
     $id = $args['idAccount'];
-    $stmt = $mysqli->prepare("SELECT * FROM transactions WHERE account_id = ?");
+    $stmt = $this->mysqli->prepare("SELECT * FROM transactions WHERE account_id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -38,7 +38,7 @@ class MovimentiController
     $id = $args['idAccount'];
     $idTrans = $args['idTransaction'];
 
-    $stmt = $mysqli->prepare("SELECT * FROM transactions WHERE id = ? AND account_id = ?");
+    $stmt = $this->mysqli->prepare("SELECT * FROM transactions WHERE id = ? AND account_id = ?");
     $stmt->bind_param("ii", $idTrans, $id);
     $stmt->execute();
     $results = $stmt->get_result()->fetch_assoc();
@@ -69,7 +69,7 @@ class MovimentiController
       return $response->withHeader("Content-type", "application/json")->withStatus(422);
     }
 
-    $stmt = $mysqli->prepare("INSERT INTO transactions (`account_id`, `type`, `amount`, `description`) VALUES (?, 'deposit', ?, ?)");
+    $stmt = $this->mysqli->prepare("INSERT INTO transactions (`account_id`, `type`, `amount`, `description`) VALUES (?, 'deposit', ?, ?)");
     $stmt->bind_param("ids", $id, $importo, $descrizione);
 
      if ($stmt->execute()) {
@@ -98,7 +98,7 @@ class MovimentiController
       return $response->withHeader("Content-type", "application/json")->withStatus(422);
     }
 
-    $stmt = $mysqli->prepare("SELECT amount FROM transactions WHERE account_id = ?");
+    $stmt = $this->mysqli->prepare("SELECT amount FROM transactions WHERE account_id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -111,7 +111,7 @@ class MovimentiController
       return $response->withHeader("Content-type", "Application/json")->withStatus(422);
     }
 
-    $stmt = $mysqli->prepare("INSERT INTO transactions ('account_id', 'type', 'amount', 'description') VALUES (?, 'withdrawal', ?, ?)");
+    $stmt = $this->mysqli->prepare("INSERT INTO transactions ('account_id', 'type', 'amount', 'description') VALUES (?, 'withdrawal', ?, ?)");
     $importoDaRimuovere = -$importo;
     $stmt->bind_param("ids", $id, $importoDaRimuovere, $descrizione);
     
@@ -141,7 +141,7 @@ class MovimentiController
       return $response->withHeader("Content-type, ", "application/json")->withStatus(400);
     }
 
-    $stmt = $mysqli->prepare("UPDATE transactions SET description = ? WHERE id = ? AND account_id = ?");
+    $stmt = $this->mysqli->prepare("UPDATE transactions SET description = ? WHERE id = ? AND account_id = ?");
     $stmt->bind_param("sii", $newDescrizione, $idTransaction, $idAccount);
 
     if ($stmt->execute()) {
@@ -163,7 +163,7 @@ class MovimentiController
     $idAccount = $args["idAccount"];
     $idTransaction = $args["idTransaction"];
 
-    $stmt = $mysqli->prepare("DELETE FROM transactions WHERE id = ? AND account_id = ?");
+    $stmt = $this->$mysqli->prepare("DELETE FROM transactions WHERE id = ? AND account_id = ?");
     $stmt->bind_param("ii", $idTransaction, $idAccount);
 
     if ($stmt->execute()) {
