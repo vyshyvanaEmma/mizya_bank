@@ -63,6 +63,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          },
           "configurations": {
             "production": {
               "buildTarget": "mizya-bank:build:production"
@@ -71,9 +74,7 @@
               "buildTarget": "mizya-bank:build:development"
             }
           },
-          "options": {
-            "proxyConfig": "proxy.conf.json"
-          },
+
           "defaultConfiguration": "development"
         },
         "test": {

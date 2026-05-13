@@ -1,4 +1,5 @@
 <?php
+
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -7,16 +8,14 @@ require_once __DIR__ . '/../methods/MovimentiMethods.php';
 class MovimentiController
 {
   private $mysqli;
-  
-  public function __construct(){
-    $this->mysqli =  new MovimentiMethods();
+
+  public function __construct() {
+    $wrapper = new MovimentiMethods();
+    $this->mysqli = $wrapper->getConnection(); 
   }
 
-  // ? GET /accounts/{idAccount}/transactions
-  public function index(Request $request, Response $response, $args){
-
-    $this->mysqli->getConnection();
-
+  // GET /accounts/{idAccount}/transactions
+  public function index(Request $request, Response $response, $args) {
     $id = $args['idAccount'];
     $stmt = $this->mysqli->prepare("SELECT * FROM transactions WHERE account_id = ?");
     $stmt->bind_param("i", $id);
@@ -24,17 +23,16 @@ class MovimentiController
     $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
     if (count($results) === 0) {
-        $response->getBody()->write(json_encode("ERRORE: nessun movimento trovato per questo account"));
-        return $response->withHeader("Content-type", "application/json")->withStatus(404);
+      $response->getBody()->write(json_encode(["errore" => "nessun movimento trovato per questo account"]));
+      return $response->withHeader("Content-Type", "application/json")->withStatus(404);
     }
 
     $response->getBody()->write(json_encode($results));
-    return $response->withHeader("Content-type", "application/json")->withStatus(200);
+    return $response->withHeader("Content-Type", "application/json")->withStatus(200);
   }
 
-  // ? GET /accounts/{idAccount}/transactions/{idTransaction}
-  public function show(Request $request, Response $response, $args){
-    $this->mysqli->getConnection();
+  // GET /accounts/{idAccount}/transactions/{idTransaction}
+  public function show(Request $request, Response $response, $args) {
     $id = $args['idAccount'];
     $idTrans = $args['idTransaction'];
 
@@ -43,139 +41,115 @@ class MovimentiController
     $stmt->execute();
     $results = $stmt->get_result()->fetch_assoc();
 
-    if(!$results){
-
-      $response->getBody()->write(json_encode("ERRORE: movimento non trovato"));
-      return $response->withHeader("Content-type", "application/json")->withStatus(404);
-
+    if (!$results) {
+      $response->getBody()->write(json_encode(["errore" => "movimento non trovato"]));
+      return $response->withHeader("Content-Type", "application/json")->withStatus(404);
     }
 
     $response->getBody()->write(json_encode($results));
-    return $response->withHeader("Content-type", "application/json")->withStatus(200);
-
+    return $response->withHeader("Content-Type", "application/json")->withStatus(200);
   }
 
-  // ? POST /accounts/{idAccount}/deposits
-  public function create(Request $request, Response $response, $args){
-
-    $this->mysqli->getConnection();
+  // POST /accounts/{idAccount}/deposits
+  public function create(Request $request, Response $response, $args) {
     $id = $args['idAccount'];
     $body = json_decode($request->getBody(), true);
     $importo = $body['amount'] ?? 0;
-    $descrizione = $body['descriprion'] ?? 'nessuna descrizione sul deposito';
+    $descrizione = $body['description'] ?? 'nessuna descrizione sul deposito'; 
 
-    if($importo <= 0){
-      $response->getBody()->write(json_encode(["ERRORE!" => "L'importo deve essere maggiore di zero"]));
-      return $response->withHeader("Content-type", "application/json")->withStatus(422);
+    if ($importo <= 0) {
+      $response->getBody()->write(json_encode(["errore" => "L'importo deve essere maggiore di zero"]));
+      return $response->withHeader("Content-Type", "application/json")->withStatus(422);
     }
 
     $stmt = $this->mysqli->prepare("INSERT INTO transactions (`account_id`, `type`, `amount`, `description`) VALUES (?, 'deposit', ?, ?)");
     $stmt->bind_param("ids", $id, $importo, $descrizione);
 
-     if ($stmt->execute()) {
-        $response->getBody()->write(json_encode(["message" => "Prelievo effettuato"]));
-        return $response->withHeader("Content-type", "application/json")->withStatus(201);
+    if ($stmt->execute()) {
+      $response->getBody()->write(json_encode(["message" => "Deposito effettuato con successo"]));
+      return $response->withHeader("Content-Type", "application/json")->withStatus(201);
     } else {
-          var_dump($stmt);
-
-        $response->getBody()->write(json_encode(["error" => "Errore durante l'operazione"]));
-        return $response->withStatus(502);
+      $response->getBody()->write(json_encode(["error" => "Errore durante l'operazione"]));
+      return $response->withHeader("Content-Type", "application/json")->withStatus(502);
     }
   }
 
-  // ? POST /accounts/{idAccount}/withdrawals
-  public function remove(Request $request, Response $response, $args){
-
-    $this->mysqli->getConnection();
-
+  // POST /accounts/{idAccount}/withdrawals
+  public function remove(Request $request, Response $response, $args) {
     $id = $args['idAccount'];
     $body = json_decode($request->getBody(), true);
     $importo = $body['amount'] ?? 0;
-    $descrizione = $body['descriprion'] ?? 'nessuna descrizione sul prelievo';
+    $descrizione = $body['description'] ?? 'nessuna descrizione sul prelievo'; 
 
-    if($importo <= 0){
-      $response->getBody()->write(json_encode(["ERRORE!" => "L'importo deve essere maggiore di zero"]));
-      return $response->withHeader("Content-type", "application/json")->withStatus(422);
+    if ($importo <= 0) {
+      $response->getBody()->write(json_encode(["errore" => "L'importo deve essere maggiore di zero"]));
+      return $response->withHeader("Content-Type", "application/json")->withStatus(422);
     }
 
-    $stmt = $this->mysqli->prepare("SELECT amount FROM transactions WHERE account_id = ?");
+    $stmt = $this->mysqli->prepare("SELECT SUM(amount) AS saldo FROM transactions WHERE account_id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();
     $saldo_attuale = $row['saldo'] ?? 0;
 
-    if($saldo_attuale > $importo){
-
-      $response->getBody()->write(json_encode(["ERRORE!" => "L'importo richiesto non può essere superiore del saldo disponibile"]));
-      return $response->withHeader("Content-type", "Application/json")->withStatus(422);
+    if ($saldo_attuale < $importo) {
+      $response->getBody()->write(json_encode(["errore" => "L'importo richiesto non può essere superiore al saldo disponibile"]));
+      return $response->withHeader("Content-Type", "application/json")->withStatus(422);
     }
 
-    $stmt = $this->mysqli->prepare("INSERT INTO transactions ('account_id', 'type', 'amount', 'description') VALUES (?, 'withdrawal', ?, ?)");
+    $stmt = $this->mysqli->prepare("INSERT INTO transactions (`account_id`, `type`, `amount`, `description`) VALUES (?, 'withdrawal', ?, ?)");
     $importoDaRimuovere = -$importo;
     $stmt->bind_param("ids", $id, $importoDaRimuovere, $descrizione);
-    
-     if ($stmt->execute()) {
-        $response->getBody()->write(json_encode(["message:" => "Prelievo effettuato"]));
-        return $response->withHeader("Content-type", "application/json")->withStatus(201);
-    } else {
 
-        $response->getBody()->write(json_encode(["error" => "Errore durante l'operazione"]));
-        return $response->withStatus(502);
+    if ($stmt->execute()) {
+      $response->getBody()->write(json_encode(["message" => "Prelievo effettuato"]));
+      return $response->withHeader("Content-Type", "application/json")->withStatus(201);
+    } else {
+      $response->getBody()->write(json_encode(["error" => "Errore durante l'operazione"]));
+      return $response->withHeader("Content-Type", "application/json")->withStatus(502);
     }
-    
   }
 
-  // ? PUT /accounts/{idAccount}/transactions/{idTransaction}
-  public function update(Request $request, Response $response, $args){
-
-    $this->mysqli->getConnection();
+  // PUT /accounts/{idAccount}/transactions/{idTransaction}
+  public function update(Request $request, Response $response, $args) {
     $idAccount = $args["idAccount"];
     $idTransaction = $args["idTransaction"];
 
     $body = json_decode($request->getBody(), true);
     $newDescrizione = $body["description"] ?? null;
 
-    if(!$newDescrizione){
-      $response->getBody()->write(json_encode(["ERRORE:"=> "Descrizione da aggiornare mancante alla richiesta"]));
-      return $response->withHeader("Content-type, ", "application/json")->withStatus(400);
+    if (!$newDescrizione) {
+      $response->getBody()->write(json_encode(["errore" => "Descrizione da aggiornare mancante alla richiesta"]));
+      return $response->withHeader("Content-Type", "application/json")->withStatus(400); // Rimossa virgola orfana nell'header
     }
 
     $stmt = $this->mysqli->prepare("UPDATE transactions SET description = ? WHERE id = ? AND account_id = ?");
     $stmt->bind_param("sii", $newDescrizione, $idTransaction, $idAccount);
 
     if ($stmt->execute()) {
-        $response->getBody()->write(json_encode(["message:" => "Descrizione aggiornata"]));
-        return $response->withHeader("Content-type", "application/json")->withStatus(201);
+      $response->getBody()->write(json_encode(["message" => "Descrizione aggiornata"]));
+      return $response->withHeader("Content-Type", "application/json")->withStatus(201);
     } else {
-
-        $response->getBody()->write(json_encode(["ERRORE:" => "Errore durante l'operazione"]));
-        return $response->withStatus(502);
+      $response->getBody()->write(json_encode(["errore" => "Errore durante l'operazione"]));
+      return $response->withHeader("Content-Type", "application/json")->withStatus(502);
     }
-    
   }
 
   // DELETE /accounts/{idAccount}/transactions/{idTransaction}
-  public function destroy(Request $request, Response $response, $args){
-
-    $this->mysqli->getConnection();
-    
+  public function destroy(Request $request, Response $response, $args) {
     $idAccount = $args["idAccount"];
     $idTransaction = $args["idTransaction"];
 
-    $stmt = $this->$mysqli->prepare("DELETE FROM transactions WHERE id = ? AND account_id = ?");
+    $stmt = $this->mysqli->prepare("DELETE FROM transactions WHERE id = ? AND account_id = ?");
     $stmt->bind_param("ii", $idTransaction, $idAccount);
 
     if ($stmt->execute()) {
-        $response->getBody()->write(json_encode(["message:" => "Transazione eliminata con successo"]));
-        return $response->withHeader("Content-type", "application/json")->withStatus(201);
+      $response->getBody()->write(json_encode(["message" => "Transazione eliminata con successo"]));
+      return $response->withHeader("Content-Type", "application/json")->withStatus(201);
     } else {
-
-        $response->getBody()->write(json_encode(["ERRORE:" => "Errore durante l'operazione"]));
-        return $response->withStatus(502);
+      $response->getBody()->write(json_encode(["errore" => "Errore durante l'operazione"]));
+      return $response->withHeader("Content-Type", "application/json")->withStatus(502);
     }
-
-}
-
-
+  }
 }
