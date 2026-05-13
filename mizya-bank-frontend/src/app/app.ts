@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { afterNextRender, Component } from '@angular/core';
-import { RouterOutlet, RouterLinkActive, RouterLink } from '@angular/router';
+import { RouterOutlet, RouterLinkActive, RouterLink, Router, NavigationEnd } from '@angular/router'; // Inserito l'import di Router e NavigationEnd
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -10,6 +11,23 @@ import { RouterOutlet, RouterLinkActive, RouterLink } from '@angular/router';
 })
 export class App {
   isMenuOpen = false;
+
+  constructor(private router: Router) {
+    // automate reload of all the pages
+    afterNextRender(() => {
+      this.router.events.pipe(
+        filter(event => event instanceof NavigationEnd)
+      ).subscribe((event: any) => {
+        const currentRoute = event.urlAfterRedirects || event.url;
+        const reloadKey = 'reloaded_' + currentRoute;
+
+        if (!sessionStorage.getItem(reloadKey)) {
+          sessionStorage.setItem(reloadKey, 'true');
+          window.location.reload();
+        }
+      });
+    });
+  }
 
   toggleMenu() {
     this.isMenuOpen = !this.isMenuOpen;
@@ -21,5 +39,4 @@ export class App {
       document.body.style.overflow = 'auto';
     }
   }
-
 }

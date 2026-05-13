@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 })
 export class Saldo implements OnInit {
 
-  idAccount: number = 1; 
+  idAccount: number = 1;
   saldoTotal: number = 0;
   lastTransactions: any[] = [];
 
@@ -30,17 +30,20 @@ export class Saldo implements OnInit {
     // balance call
     this.saldoService.getBalance(this.idAccount).subscribe(data => {
       this.saldoTotal = data.balance;
+
+      // fiat for cuurent balance
+      this.saldoFiatUsd = this.saldoTotal * this.taxChangeUsd;
     });
 
     // transactions call
     this.saldoService.getTransactions(this.idAccount).subscribe(data => {
-      this.lastTransactions = data.slice(0, 2); // last 2 transactions; 
+      this.lastTransactions = data.slice(0, 2); // last 2 transactions;
     });
 
     // convert to USD (fiat)
     this.saldoService.getConvertedFiat(this.idAccount, 'USD').subscribe(data => {
-      this.saldoFiatUsd = data.converted_balance;
       this.taxChangeUsd = data.rate;
+      this.saldoFiatUsd = this.saldoTotal * this.taxChangeUsd;
     });
 
     // convert to bit (crypto)
