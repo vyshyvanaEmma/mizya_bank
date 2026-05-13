@@ -7,6 +7,7 @@
 
     <div class="w-full max-w-2xl bg-zinc-900/60 border border-zinc-800 p-6 rounded-3xl backdrop-blur-md shadow-[0_0_50px_rgba(0,0,0,0.3)]">
 
+        <!-- filter controls -->
         <div class="flex items-center justify-between border-b border-zinc-800 pb-5 mb-6">
             <h3 class="text-white font-bold flex items-center gap-2 text-lg">
                 <span class="w-1 h-4 bg-orange-500 rounded-full"></span>
@@ -35,10 +36,14 @@
             </div>
         </div>
 
+        <!-- transactions list -->
         <div class="space-y-3">
             @for (t of filteredTransactions; track t.id) {
-            <div class="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/5 hover:border-orange-500/30 transition-colors group">
+            <!-- click to navigate | scale effect on click -->
+            <div (click)="viewDetails(t.id)"
+                class="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/5 hover:border-orange-500/30 transition-all group cursor-pointer active:scale-[0.98]">
 
+                <!-- info and icon -->
                 <div class="flex items-center gap-4">
                     <div class="w-11 h-11 rounded-xl bg-zinc-800 flex items-center justify-center text-lg font-black transition-transform group-hover:scale-110"
                         [class.text-orange-500]="t.amount < 0" [class.text-green-500]="t.amount > 0">
@@ -51,6 +56,7 @@
                     </div>
                 </div>
 
+                <!-- amount status -->
                 <div class="text-right">
                     <p class="font-black text-sm tracking-tight" [class.text-green-500]="t.amount > 0" [class.text-orange-500]="t.amount < 0">
                         {{ t.amount > 0 ? '+' : '' }}{{ t.amount | currency:'EUR':'symbol':'1.2-2' }}
@@ -63,6 +69,7 @@
             </div>
             }
 
+            <!-- empty state feedback -->
             @empty {
             <div class="flex flex-col items-center justify-center py-12 px-4 border border-dashed border-zinc-800 rounded-2xl">
                 <p class="text-zinc-600 text-sm italic font-medium">No transactions found matching criteria</p>
@@ -71,7 +78,7 @@
         </div>
     </div>
 
-    <a href="../saldo/saldo.html" class="text-zinc-500 hover:text-white text-xs uppercase tracking-widest transition-colors font-medium">
+    <a href="../saldo/saldo.html" class="text-zinc-600 hover:text-white text-xs uppercase tracking-widest transition-colors font-medium">
         ← Back to Home
     </a>
 

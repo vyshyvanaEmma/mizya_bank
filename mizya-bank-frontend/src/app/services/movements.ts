@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 export class Movements {
   private apiUrl = '/accounts';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getBalance(idAccount: number): Observable<any> {
     return this.http.get(`${this.apiUrl}/${idAccount}/balance`);
@@ -28,5 +28,20 @@ export class Movements {
       description: description ? description : `Withdrawal of €${amount}`
     };
     return this.http.post(`${this.apiUrl}/${idAccount}/withdrawals`, payload);
+  }
+
+  // get transaction details
+  getTransactionById(idAccount: number, idTransaction: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${idAccount}/transactions/${idTransaction}`);
+  }
+
+  // update transaction data
+  updateTransaction(idAccount: number, idTransaction: number, payload: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${idAccount}/transactions/${idTransaction}`, payload);
+  }
+
+  // remove record
+  deleteTransaction(idAccount: number, idTransaction: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${idAccount}/transactions/${idTransaction}`);
   }
 }

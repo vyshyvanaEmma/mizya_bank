@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SaldoService } from '../../services/saldo';
+import { Router } from '@angular/router'; 
 
 @Component({
   selector: 'app-lista-movimenti',
@@ -11,17 +12,20 @@ import { SaldoService } from '../../services/saldo';
   styleUrl: './lista-movimenti.css',
 })
 export class ListaMovimenti implements OnInit {
+  // state management
   idAccount: number = 1;
   allTransactions: any[] = [];
   filteredTransactions: any[] = [];
   activeFilter: string = 'all';
 
-  constructor(private saldoService: SaldoService) {}
+  // inject router in constructor
+  constructor(private saldoService: SaldoService, private router: Router) {}
 
   ngOnInit(): void {
     this.fetchFullHistory();
   }
 
+  // fetch & sanitize transaction data
   fetchFullHistory(): void {
     this.saldoService.getTransactions(this.idAccount).subscribe({
       next: (data) => {
@@ -42,6 +46,12 @@ export class ListaMovimenti implements OnInit {
     });
   }
 
+  // navigate to detail view by id
+  viewDetails(transactionId: number): void {
+    this.router.navigate(['/transaction', transactionId]);
+  }
+
+  // apply memory filters
   applyFilter(type: string): void {
     this.activeFilter = type;
     if (type === 'all') {
