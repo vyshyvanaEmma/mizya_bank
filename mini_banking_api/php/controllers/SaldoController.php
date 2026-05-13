@@ -1,18 +1,21 @@
 <?php
+
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 class SaldoController
 {
-    private function get_data() {
+    private function get_data()
+    {
         return @new MySQLi('localhost', 'root', '', 'banca');
         //return @new MySQLi('my_mariadb', 'root', 'hotpeppers', 'bank');
     }
 
     // GET /accounts/{idAccount}/balance
-    public function index(Request $request, Response $response, $args){
+    public function index(Request $request, Response $response, $args)
+    {
         $mysqli = $this->get_data();
-        $accountId = (int)$args['idAccount']; 
+        $accountId = (int)$args['idAccount'];
 
         $check = $mysqli->query("SELECT id FROM accounts WHERE id = $accountId");
         if (!$check || $check->num_rows === 0) {
@@ -20,7 +23,7 @@ class SaldoController
             return $response->withHeader("Content-type", "application/json")->withStatus(404);
         }
 
-        $result = $mysqli->query("SELECT SUM(CASE WHEN type = 'deposit' THEN amount ELSE -amount END) as balance FROM transactions WHERE account_id = $accountId");
+        $result = $mysqli->query("SELECT SUM(amount) as balance FROM transactions WHERE account_id = $accountId");
         $row = $result->fetch_assoc();
         $balance = (float)($row['balance'] ?? 0.00);
 
@@ -33,9 +36,10 @@ class SaldoController
 
 
     // GET /accounts/{idAccount}/balance/convert/fiat?to=USD
-    public function convert_to_fiat(Request $request, Response $response, $args){
+    public function convert_to_fiat(Request $request, Response $response, $args)
+    {
         $accountId = $args['idAccount'];
-        $mysqli = $this->get_data(); 
+        $mysqli = $this->get_data();
         $params = $request->getQueryParams();
         $to = strtoupper($params['to'] ?? '');
 
@@ -120,10 +124,11 @@ class SaldoController
     }
 
     // GET /accounts/{idAccount}/balance/convert/crypto?to=BTC
-    public function convert_to_crypto(Request $request, Response $response, $args) {
+    public function convert_to_crypto(Request $request, Response $response, $args)
+    {
         $mysqli = $this->get_data();
         $accountId = $args['idAccount'] ?? 0;
-        
+
         $params = $request->getQueryParams();
         $to = strtoupper($params['to'] ?? '');
 
@@ -154,15 +159,15 @@ class SaldoController
         $stmt->execute();
         $balance = $stmt->get_result()->fetch_assoc()['balance'] ?? 0;
 
-        $marketSymbol = $to . $from; 
+        $marketSymbol = $to . $from;
         $url = "https://api.binance.com/api/v3/ticker/price?symbol=" . $marketSymbol;
-        
+
         $json = @file_get_contents($url);
 
         if ($json === false) {
             $response->getBody()->write(json_encode([
                 'error' => "Market pair {$marketSymbol} not supported on Binance",
-                'url_tested' => $url 
+                'url_tested' => $url
             ]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(502);
         }
@@ -190,8 +195,5 @@ class SaldoController
         ]));
 
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    
     }
-
-
 }
